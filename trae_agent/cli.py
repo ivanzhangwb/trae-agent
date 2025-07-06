@@ -29,6 +29,18 @@ console = Console()
 
 def load_config(provider: str | None = None, model: str | None = None, api_key: str | None = None,
                  config_file: str = "trae_config.json", max_steps: int | None = 20) -> Config:
+    """
+
+    Args:
+        provider (LLM provider name):
+        model (the LLM model name):
+        api_key (LLM apikey):
+        config_file (config file name):
+        max_steps (max step for llm task process):
+
+    Returns:
+
+    """
     config: Config = Config(config_file)
     # Resolve model provider
     resolved_provider = resolve_config_value(provider, config.default_provider) or "openai"
@@ -139,6 +151,7 @@ def run(task: str, provider: str | None = None, model: str | None = None, api_ke
             "patch_path": patch_path
         }
         agent.new_task(task, task_args)
+        # 有chat, 然后根据 LLM的回复决定是否要执行 tool_execute的过程，然后就是结果美化与解析等等后置步骤
         _ = asyncio.run(agent.execute_task())
 
         console.print(f"\n[green]Trajectory saved to: {trajectory_path}[/green]")

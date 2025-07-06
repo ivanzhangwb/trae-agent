@@ -43,6 +43,7 @@ class OpenAIClient(BaseLLMClient):
         """Send chat messages to OpenAI with optional tool support."""
         openai_messages: ResponseInputParam = self.parse_messages(messages)
 
+        # 在传递信息给 LLM之前，先把所有的工具信息填充给 LLM
         tool_schemas = None
         if tools:
             tool_schemas = [FunctionToolParam(
@@ -53,6 +54,7 @@ class OpenAIClient(BaseLLMClient):
                 type="function"
             ) for tool in tools]
 
+        # 每一次聊天都要把所有的历史信息全部一股脑的丢给 LLM
         if reuse_history:
             self.message_history = self.message_history + openai_messages
         else:
@@ -82,6 +84,7 @@ class OpenAIClient(BaseLLMClient):
 
         content = ""
         tool_calls: list[ToolCall] = []
+        # 这里是处理 LLM响应，如果有工具调用的提示的话，将其单独提取出来
         for output_block in response.output:
             if output_block.type == "function_call":
                 tool_calls.append(ToolCall(

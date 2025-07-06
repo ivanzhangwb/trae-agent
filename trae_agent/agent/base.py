@@ -56,7 +56,9 @@ class Agent(ABC):
         try:
             messages = self.initial_messages
             step_number = 1
-
+            
+            # Agent 的每一个步骤通过流水线以及编排好了
+            
             while step_number <= self.max_steps:
                 step = AgentStep(step_number=step_number, state=AgentState.THINKING)
 
@@ -65,14 +67,14 @@ class Agent(ABC):
                     # Get LLM response
                     step.state = AgentState.THINKING
 
-                    # Display thinking state
+                    # Display thinking state, 界面上显示正在思考的文案
                     if self.cli_console:
                         self.cli_console.update_status(step)
 
                     llm_response = self.llm_client.chat(messages, self.model_parameters, self.tools)
                     step.llm_response = llm_response
 
-                    # Display step with LLM response
+                    # Display step with LLM response, 将步骤和LLM的响应显示在界面
                     if self.cli_console:
                         self.cli_console.update_status(step)
 
@@ -84,12 +86,13 @@ class Agent(ABC):
                             execution.total_tokens = llm_response.usage
 
                     if self.llm_indicates_task_completed(llm_response):
+                        # 更新 Agnet 的状态以及使用的 token 情况
                         if self.is_task_completed(llm_response):
                             step.state = AgentState.COMPLETED
                             execution.final_result = llm_response.content
                             execution.success = True
 
-                            # Record agent step
+                            # Record agent step, 记录 Agent 的步骤信息
                             if self.trajectory_recorder:
                                 self.trajectory_recorder.record_agent_step(
                                     step_number=step.step_number,
@@ -106,14 +109,17 @@ class Agent(ABC):
                             execution.steps.append(step)
                             break
                         else:
+                            # 还没有结束的时候， 状态保持在想的状态, 任务未完成，可能是出了异常等等，提示用户,需要重试
                             step.state = AgentState.THINKING
                             messages = [LLMMessage(role="user", content=self.task_incomplete_message())]
                     else:
                         # Check if the response contains a tool call
                         tool_calls = llm_response.tool_calls
 
+                        # LLM的回复当中如何有需要使用 工具的话术，这里就开始执行对应的工具函数
+                        # LLM 与 工具之间进行链接.
                         if tool_calls and len(tool_calls) > 0:
-                            # Execute tool call
+                            # Execute tool call 执行工具的同时，同步更新 Agnet 的状态
                             step.state = AgentState.CALLING_TOOL
                             step.tool_calls = tool_calls
 

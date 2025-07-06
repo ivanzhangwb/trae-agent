@@ -60,7 +60,18 @@ class TraeAgent(Agent):
 
     @override
     def new_task(self, task: str, extra_args: dict[str, str] | None = None, tool_names: list[str] | None = None):
-        """Create a new task."""
+        """
+        完成任务的创建，主要实现两个步骤
+        1、利用系统提示词给予大模型的角色定位
+        2、描述当前项目的基本情况，包括路径、issues 信息以及 git 的相关信息
+        Args:
+            task ():
+            extra_args ():
+            tool_names ():
+
+        Returns:
+
+        """
         self.task: str = task
 
         if tool_names is None:
@@ -107,7 +118,12 @@ class TraeAgent(Agent):
 
     @override
     async def execute_task(self) -> AgentExecution:
-        """Execute the task and finalize trajectory recording."""
+        """
+            开始执行任务
+        Returns:
+            任务执行结果
+
+        """
         if self.cli_console:
             console_task = asyncio.create_task(self.cli_console.start())
         else:
